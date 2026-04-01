@@ -55,6 +55,7 @@ El monitoreador contiene dos alertas, que son notificadas a una dirección de co
 | group_wait | 2m | 1m | El tiempo que Alertmanager espera después de recibir la primera alerta antes de mandar la notificación Esto permite que multiples alertas que se disparan al mismo tiempo sean agrupadas en un único correo en lugar de enviar un correo por alerta |
 | group_interval | 10m | 2m | Después de que la primera notificación es enviada, group_interval indica cuánto tiempo Alertmanager espera antes de enviar notificaciones de seguimiento para el mismo grupo. Por ejemplo: cuando una nueva alerta se une a un grupo existente, o cuando una alerta se resuelve |
 | repeat_interval | 4h | 5m | Si una alerta sigue activa y no hubo cambios, repeat_interval indica cuánto tiempo Alertmanager espera antes de re-enviar la misma notificación como recordatorio |
+
 Estos parámetros pueden ser ajustados según la necesidad
 #### 1.3.3. Pausar alertas (mute alerts)
 Las alertas son pausadas todas las noches entre las 10 de la noche y las 5 de la mañana.
