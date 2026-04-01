@@ -7,6 +7,56 @@ El servidor Prometheus conecta las métricas del vLLM con Grafana y AlertManager
 1. scrape_interval: 5s. Frecuencia en la que Prometheus importa las métricas desde el vLLM
 2. evaluation_interval: 30s. Frecuencia en la que Prometheus evalua las reglas de las alertas en alert_rules.yml
 ### 1.2. Dashboard
+[Imagen de metrics vLLM]
+[Insertar también imagenes de los gráficos donde corresponda]
+El dashboard contiene 12 gráficos:
+1. E2E Request Latency: Latencia end-to-end de los requests. Presenta la latencia en P50, P90, P95 y P99; así como la latencia en promedio 
+2. Token Throughput: Número de tokens procesados en promedio
+3. Inter Token Latency: Inter token latency en segundos
+4. Scheduler State: Número de requests en estado RUNNING y WAITING
+5. Time To First Token Latency: P50, P90, P95, P99 TTFT latency, así como la latencia en promedio, en segundos
+6. Cache Utilization: Porcentaje de bloques de caché utilizados por vLLM
+7. Request Prompt Lenght: Heatmap de Request Prompt Length
+8. Request Generation Lenght: Heatmap de Request Generation Length
+9. Finish Reason: Número de requests terminados, clasificados por su motivo de finalización: si un EOS token fue generado o se alcanzó la longitud máxima de la sequencia 
+10. Queue Time
+11. Requests Prefill and Decode Time
+12. Max Generation Token in Sequence Group
+### 1.3. Alertas
+El monitoreador contiene dos alertas, que son notificadas a una dirección de correo cuando se activan.
+#### 1.3.1. Reglas de alertas
+| Alerta | Resumen | Descripción | Severidad | Valores normales |
+|---|---|---|---|---|
+| Brecha | No se recibieron requests durante 10 minutos | No se ha procesado ningún prompt tokens en los últimos 10 minutos - posible problema de servicio o periodo inactivo | Warning | Mayor a 0 (hay requests) |
+| LatenciaE2EAlta | Se detectó un pico la latencia End-to-End durante 1 minuto | La latencia de P99 E2E fue mayor a 14s por más de 1 minuto | Critical | Latencia de P99 E2E = 9.95s |
+#### 1.3.2. Notificaciones
+[3 imagenes]
+| Parámetro | Implementación | Pruebas | Explicación |
+|---|---|---|---|
+| group_wait | 2m | 1m | El tiempo que Alertmanager espera después de recibir la primera alerta antes de mandar la notificación Esto permite que multiples alertas que se disparan al mismo tiempo sean agrupadas en un único correo en lugar de enviar un correo por alerta |
+| group_interval | 10m | 2m | Después de que la primera notificación es enviada, group_interval indica cuánto tiempo Alertmanager espera antes de enviar notificaciones de seguimiento para el mismo grupo. Por ejemplo: cuando una nueva alerta se une a un grupo existente, o cuando una alerta se resuelve |
+| repeat_interval | 4h | 5m | Si una alerta sigue activa y no hubo cambios, repeat_interval indica cuánto tiempo Alertmanager espera antes de re-enviar la misma notificación como recordatorio |
+Estos parámetros pueden ser ajustados según la necesidad
+#### 1.3.3. Pausar alertas (mute alerts)
+Las alertas son pausadas todas las noches entre las 10 de la noche y las 5 de la mañana.
+Observación: La hora en Alertmanager está basada en la zona horaria UTC.
+### 1.4. Estructura del directorio del proyecto
+``` text
+vLLM_metrics_monitor/
+├── dashboards/
+│   ├── dashboard_config.yml
+│   └── my_dashboard.json
+├── datasources/
+│   └── datasource.yml
+├── templates/
+│   └── vllm_alerts.tmpl
+├── .dockerignore
+├── alert_rules.yml
+├── alertmanager.yml
+├── docker-compose.yml
+├── prometheus.yml
+└── README.md
+```
 ## 2. Lista de cambios para la implementación
 ### 2.1. templates/vllm_alerts.tmpl
 1. Línea 77: {{ $grafana_url := "url del dashboard en Grafana" }}
