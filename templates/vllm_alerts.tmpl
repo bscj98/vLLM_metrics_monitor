@@ -42,7 +42,7 @@
   {{ $value_label := .Annotations.value }}
   {{ $quick_advice := "" }}
   {{ $resolved_description_label := "Resuelto"}}
-  {{ if or (eq $alert_name "LatenciaE2EAlta") (eq $alert_name "TestAlert") }}
+  {{ if eq $alert_name "LatenciaE2EAlta" }}
     {{ $icon = "🚨" }}
     {{ $status_label1 = "Latencia E2E Alta" }}
     {{ $description_label = "La latencia end-to-end P99 superó el umbral configurado." }}
