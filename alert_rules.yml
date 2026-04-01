@@ -21,13 +21,3 @@ groups:
           description: "La latencia de P99 E2E fue mayor a 14s por más de 1 minuto."
           value: "{{ $value }}"
           model_name: "{{ $labels.model_name }}"
-      - alert: TestAlert
-        expr: (minute() % 10 < 5)
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Test alert"
-          description: "This is a test alert to verify email notifications are working."
-          value: "{{ $value }}"
-          model_name: "Qwen/Qwen3-VL-32B-Instruct-FP8"
