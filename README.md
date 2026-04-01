@@ -1,5 +1,24 @@
 # Monitoreador de métricas de vLLM
 Este proyecto consiste en, por medio de un servidor Prometheus, vincular las métricas del servidor 192.168.16.148:8000 a un dashboard de Grafana, así como generar alertas que notifiquen cuando las métricas se comportan de forma extraña. Las alertas son configuradas usando AlertManager.
+
+Guia para la implementación: [2. Lista de cambios para la implementación](#2-lista-de-cambios-para-la-implementación)
+## Tabla de contenidos
+- [Monitoreador de métricas de vLLM](#monitoreador-de-métricas-de-vllm)
+  - [Tabla de contenidos](#tabla-de-contenidos)
+  - [1. Detalles del monitoreador](#1-detalles-del-monitoreador)
+    - [1.1. Servidor Prometheus](#11-servidor-prometheus)
+      - [1.1.1. Parametros](#111-parametros)
+    - [1.2. Dashboard](#12-dashboard)
+    - [1.3. Alertas](#13-alertas)
+      - [1.3.1. Reglas de alertas](#131-reglas-de-alertas)
+      - [1.3.2. Notificaciones](#132-notificaciones)
+      - [1.3.3. Pausar alertas (mute alerts)](#133-pausar-alertas-mute-alerts)
+    - [1.4. Estructura del directorio del proyecto](#14-estructura-del-directorio-del-proyecto)
+  - [2. Lista de cambios para la implementación](#2-lista-de-cambios-para-la-implementación)
+    - [2.1. templates/vllm\_alerts.tmpl](#21-templatesvllm_alertstmpl)
+    - [2.2. alertmanager.yml](#22-alertmanageryml)
+    - [2.3. docker-compose.yml](#23-docker-composeyml)
+    - [2.4 password.txt](#24-passwordtxt)
 ## 1. Detalles del monitoreador
 ### 1.1. Servidor Prometheus
 El servidor Prometheus conecta las métricas del vLLM con Grafana y AlertManager
