@@ -1,7 +1,7 @@
 global:
   smtp_smarthost: 'smtp.gmail.com:587'
-  smtp_from: 'brian.cikel.uptp@gmail.com'
-  smtp_auth_username: 'brian.cikel.uptp@gmail.com'
+  smtp_from: 'dirección de correo del emisor'            # modificar
+  smtp_auth_username: 'dirección de correo del emisor'   # modificar
   smtp_auth_password_file: '/etc/alertmanager/password.txt'
   smtp_require_tls: true
 
@@ -34,7 +34,7 @@ route:
 receivers:
 - name: 'receiver_gap'
   email_configs:
-  - to: 'cikeljarabriansantiago@gmail.com'
+  - to: 'dirección de correo del receptor' # modificar
     send_resolved: true
     html: '{{ template "vllm_alerts.html" . }}'
     headers:
@@ -42,21 +42,13 @@ receivers:
 
 - name: 'receiver_spike'
   email_configs:
-  - to: 'cikeljarabriansantiago@gmail.com'
+  - to: 'dirección de correo del receptor' # modificar
     send_resolved: true
     html: '{{ template "vllm_alerts.html" . }}'
     headers:
       subject: '{{ if eq .Status "resolved" }}✅{{ else }}🚨{{ end }} vLLM Alert: {{ .CommonLabels.alertname }}'
 
-- name: 'receiver_TestAlert'
-  email_configs:
-  - to: 'cikeljarabriansantiago@gmail.com'
-    send_resolved: true
-    html: '{{ template "vllm_alerts.html" . }}'
-    headers:
-      subject: '{{ if eq .Status "resolved" }}✅{{ else }}🚨{{ end }} vLLM Alert: {{ .CommonLabels.alertname }}'
-
-- name: 'email-notifications'
+- name: 'dirección de correo del receptor' # modificar
   email_configs:
   - to: 'cikeljarabriansantiago@gmail.com'
     send_resolved: true
