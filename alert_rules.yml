@@ -1,0 +1,33 @@
+groups:
+  - name: vllm_alerts
+    rules:
+      - alert: Brecha
+        expr: sum(increase(vllm:request_prompt_tokens_bucket{model_name="Qwen/Qwen3-VL-32B-Instruct-FP8"}[10m])) == 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "No se recibieron pedidos por 10 minutos"
+          description: "No se ha procesado ningún prompt tokens en los últimos 10 minutos - posible problema de servicio o periodo inactivo"
+          value: "{{ $value }}"
+          model_name: "{{ $labels.model_name }}"
+      - alert: LatenciaE2EAlta
+        expr: histogram_quantile(0.99, sum(rate(vllm:e2e_request_latency_seconds_bucket{model_name="Qwen/Qwen3-VL-32B-Instruct-FP8"}[1m])) by (le, model_name)) > 14
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Pico de latencia detectado"
+          description: "La latencia de P99 E2E fue mayor a 14s por más de 1 minuto."
+          value: "{{ $value }}"
+          model_name: "{{ $labels.model_name }}"
+      - alert: TestAlert
+        expr: (minute() % 10 < 5)
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Test alert"
+          description: "This is a test alert to verify email notifications are working."
+          value: "{{ $value }}"
+          model_name: "Qwen/Qwen3-VL-32B-Instruct-FP8"

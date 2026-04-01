@@ -1,0 +1,73 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'brian.cikel.uptp@gmail.com'
+  smtp_auth_username: 'brian.cikel.uptp@gmail.com'
+  smtp_auth_password_file: '/etc/alertmanager/password.txt'
+  smtp_require_tls: true
+
+templates:
+  - /etc/alertmanager/vllm_alerts.tmpl
+
+route:
+  receiver: 'email-notifications'
+  group_wait: 1m      # Wait to see if more alerts arrive. 1m para pruebas; 2m para la implementación
+  group_interval: 2m   # Before sending new alerts for same group. 2m para pruebas; 10m para la implementación
+  repeat_interval: 5m  # Wait before re-sending a firing alert. 5m para pruebas; cambiar a 4h para la implementación
+  # The "Child" route (where the mute window lives)
+  routes:
+    - matchers: 
+        - alertname="Brecha"  
+      receiver: 'receiver_gap'
+      mute_time_intervals:
+        - night
+    - matchers: 
+        - alertname="LatenciaE2EAlta"    
+      receiver: 'receiver_spike'
+      mute_time_intervals:
+        - night
+    - matchers:
+        - alertname="TestAlert"
+      receiver: "receiver_TestAlert"
+      mute_time_intervals:
+        - night
+
+receivers:
+- name: 'receiver_gap'
+  email_configs:
+  - to: 'cikeljarabriansantiago@gmail.com'
+    send_resolved: true
+    html: '{{ template "vllm_alerts.html" . }}'
+    headers:
+      subject: '{{ if eq .Status "resolved" }}✅{{ else }}⚠️{{ end }} vLLM Alert: {{ .CommonLabels.alertname }}'
+
+- name: 'receiver_spike'
+  email_configs:
+  - to: 'cikeljarabriansantiago@gmail.com'
+    send_resolved: true
+    html: '{{ template "vllm_alerts.html" . }}'
+    headers:
+      subject: '{{ if eq .Status "resolved" }}✅{{ else }}🚨{{ end }} vLLM Alert: {{ .CommonLabels.alertname }}'
+
+- name: 'receiver_TestAlert'
+  email_configs:
+  - to: 'cikeljarabriansantiago@gmail.com'
+    send_resolved: true
+    html: '{{ template "vllm_alerts.html" . }}'
+    headers:
+      subject: '{{ if eq .Status "resolved" }}✅{{ else }}🚨{{ end }} vLLM Alert: {{ .CommonLabels.alertname }}'
+
+- name: 'email-notifications'
+  email_configs:
+  - to: 'cikeljarabriansantiago@gmail.com'
+    send_resolved: true
+    headers:
+      subject: 'Default'
+
+# In reality, the time is from 22:00 to 5:00 of the next day in utc-3 (1:00 to 8:00 in utc). 
+# Alertmanager works with utc time zone
+time_intervals:
+  - name: night
+    time_intervals:
+      - times:
+          - start_time: '01:00'
+            end_time: '08:00'

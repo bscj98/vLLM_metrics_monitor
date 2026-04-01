@@ -1,0 +1,181 @@
+{{ define "vllm_alerts.html" }}
+{{ range .Alerts }}
+  {{/* Conversion of firing and resolved times from UTC to UTC-3 */}}
+  {{ $local_time_start := .StartsAt.Add -10800000000000 }}
+  {{ $local_time_end := .EndsAt.Add -10800000000000 }}
+
+  {{/* Alert status */}}
+  {{ $is_resolved := eq .Status "resolved" }}
+  {{ $is_critical := eq .Labels.severity "critical" }}
+  {{ $alert_name := .Labels.alertname }}
+
+  {{/* Header colors and labels depending on status */}}
+  {{/* Also, table colors and some labels that depends on status */}}
+  {{ $header_bg := "#fff7ed" }}
+  {{ $header_text_color1 := "#9a3412" }}
+  {{ $header_text_color2 := "#7c2d12" }}
+  {{ $status_label1 := "⚠️ Alerta vLLM" }}
+  {{ $status_label2 := $alert_name }}
+  {{ $table_text_color := "#ac551b" }}
+  {{ $severity := "Advertecia" }}
+  {{ if $is_resolved }}
+    {{ $header_bg = "#f0fdf4" }}
+    {{ $header_text_color1 = "#1b991b" }}
+    {{ $header_text_color2 = "#1d7f1d" }}
+    {{ $status_label1 = "✅ Alerta vLLM Resuelta" }}
+    {{ $status_label2 = printf "Resuelto: %s" $alert_name }}
+    {{ $table_text_color = "#1b901b" }}
+    {{ $severity = "Resuelto" }}
+  {{ else if $is_critical }}
+    {{ $header_bg = "#fef2f2" }}
+    {{ $header_text_color1 = "#991b1b" }}
+    {{ $header_text_color2 = "#7f1d1d" }}
+    {{ $status_label1 = "🚨 Alerta vLLM" }}
+    {{ $table_text_color = "#ac1b1b" }}
+    {{ $severity = "Crítico" }}
+  {{ end }}
+
+  {{/* Per-alert customization */}}
+  {{ $icon := "🔔" }}
+  {{ $description_label := "" }}
+  {{ $threshold_label := "" }}
+  {{ $value_label := .Annotations.value }}
+  {{ $quick_advice := "" }}
+  {{ $resolved_description_label := "Resuelto"}}
+  {{ if or (eq $alert_name "LatenciaE2EAlta") (eq $alert_name "TestAlert") }}
+    {{ $icon = "🚨" }}
+    {{ $status_label1 = "Latencia E2E Alta" }}
+    {{ $description_label = "La latencia end-to-end P99 superó el umbral configurado." }}
+    {{ $resolved_description_label = "Resuelto: la latencia end-to-end P99 regresó a los valores normales." }}
+    {{ $threshold_label = "> 15s" }}
+    {{ $quick_advice = "Sugerencia: revisar picos de carga, longitud de los prompts y estado del scheduler. Si coincide con un deploy reciente, revisar cambios." }}
+  {{ else if eq $alert_name "Brecha" }}
+    {{ $icon = "⚠️" }}
+    {{ $status_label1 = "Sin Pedidos Recibidos" }}
+    {{ $description_label = "No se procesaron prompt tokens en los últimos 5 minutos. Posible problema de servicio o período inactivo." }}
+    {{ $resolved_description_label = "Resuelto: se detectaron nuevos prompt tokens." }}
+    {{ $threshold_label = "0 requests en 5 min" }}
+    {{ $quick_advice = "Sugerencia: verificar que vLLM esté corriendo y accesible, y que Prometheus esté recibiendo métricas." }}
+  {{ end }}
+  {{ if $is_resolved }}
+    {{ $icon = "✅" }}
+    {{ $quick_advice = "" }}
+    {{ $description_label = printf "%s" $resolved_description_label }}
+  {{ end }}
+  {{ $status_label1 = printf "%s %s" $icon $status_label1 }}
+
+  {{/* Model name, firing and resolved times */}}
+  {{ $model_name := .Annotations.model_name }}
+  {{ $fired_at := $local_time_start.Format "15:04" }}
+  {{ $resolved_at := "—" }}
+  {{ if $is_resolved }}
+    {{ $resolved_at = $local_time_end.Format "15:04" }}
+  {{ end }}
+
+  {{/* Footer information */}}
+  {{ $source := "vLLM" }}
+  {{ $grafana_url := "http://localhost:3001/d/b281712d-8bff-41ef-9f3f-71ad43c05e9b/vllm?orgId=1&from=now-30m&to=now&timezone=browser&var-DS_PROMETHEUS=PBFA97CFB590B2093&var-model_name=Qwen%2FQwen3-VL-32B-Instruct-FP8&refresh=1m" }}
+  {{ $prometheus_url := "http://localhost:9090" }}
+
+  <!doctype html>
+  <html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Alerta vLLM: {{ $alert_name }}</title>
+  </head>
+  <body style="margin:0;padding:0;background:#f6f8fb;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f8fb;padding:24px 0;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="680" cellspacing="0" cellpadding="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);">
+
+            <!-- Header -->
+            <tr>
+              <td style="background:{{ $header_bg }};padding:18px 24px;border-bottom:1px solid #f3f4f6;">
+                <div style="font-size:14px;color:{{ $header_text_color1 }};">{{ $status_label1 }}</div>
+                <div style="font-size:20px;font-weight:700;color:{{ $header_text_color2 }};margin-top:4px;">
+                  {{ $status_label2 }}
+                </div>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding:18px 24px;">
+                <p style="margin:0 0 10px 0;font-size:14px;color:#374151;">
+                  {{ $description_label }}
+                </p>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb;border-radius:10px;">
+                  <tr>
+                    <td style="padding:12px 14px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;">
+                      Detalle
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:14px;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:14px;">
+                        <tr>
+                          <td style="padding:6px 0;color:#6b7280;width:45%;">Alerta</td>
+                          <td style="padding:6px 0;"><b>{{ $alert_name }}</b></td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#6b7280;">Modelo</td>
+                          <td style="padding:6px 0;"><b>{{ $model_name }}</b></td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#6b7280;">Valor actual</td>
+                          <td style="padding:6px 0;"><b style="color:{{ $table_text_color }};">{{ $value_label }}</b></td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#6b7280;">Umbral</td>
+                          <td style="padding:6px 0;"><b>{{ $threshold_label }}</b></td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#6b7280;">Severidad</td>
+                          <td style="padding:6px 0;"><b style="color:{{ $table_text_color }};">{{ $severity }}</b></td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#6b7280;">Detectado</td>
+                          <td style="padding:6px 0;">{{ $fired_at }}</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#6b7280;">Resuelto</td>
+                          <td style="padding:6px 0;">{{ $resolved_at }}</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                {{ if $quick_advice }}
+                <p style="margin:14px 0 0 0;font-size:13px;color:#6b7280;">
+                  {{ $quick_advice }}
+                </p>
+                {{ end }}
+
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td style="padding:14px 24px;border-top:1px solid #f3f4f6;background:#ffffff;">
+                <div style="font-size:12px;color:#9ca3af;">
+                  Fuente: {{ $source }} · Modelo: {{ $model_name }}
+                </div>
+                <div style="font-size:12px;color:#9ca3af;margin-top:6px;">
+                  Link Grafana: <a href="{{ $grafana_url }}" style="color:#2563eb;text-decoration:none;">Abrir panel</a> ·
+                  Link Prometheus: <a href="{{ $prometheus_url }}" style="color:#2563eb;text-decoration:none;">Ver alerta</a>
+                </div>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+  </html>
+{{ end }}
+{{ end }}
