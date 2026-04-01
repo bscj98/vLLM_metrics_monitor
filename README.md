@@ -21,7 +21,9 @@ Guia para la implementación: [2. Lista de cambios para la implementación](#2-l
     - [2.4 password.txt](#24-passwordtxt)
 ## 1. Detalles del monitoreador
 ### 1.1. Servidor Prometheus
-El servidor Prometheus conecta las métricas del vLLM con Grafana y AlertManager
+El servidor Prometheus conecta las métricas del vLLM con Grafana y AlertManager.
+
+El servidor de Prometheus guarda un registro de las métricas durante 90 días, o hasta que los datos del registro alcancen los 50GB de almacenamiento.
 #### 1.1.1. Parametros
 1. scrape_interval: 5s. Frecuencia en la que Prometheus importa las métricas desde el vLLM
 2. evaluation_interval: 30s. Frecuencia en la que Prometheus evalua las reglas de las alertas en alert_rules.yml
