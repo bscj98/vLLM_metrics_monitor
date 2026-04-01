@@ -28,8 +28,10 @@ El servidor de Prometheus guarda un registro de las métricas durante 90 días, 
 1. scrape_interval: 5s. Frecuencia en la que Prometheus importa las métricas desde el vLLM
 2. evaluation_interval: 30s. Frecuencia en la que Prometheus evalua las reglas de las alertas en alert_rules.yml
 ### 1.2. Dashboard
-[Imagen de metrics vLLM]
-[Insertar también imagenes de los gráficos donde corresponda]
+![Intervalos](img/intervals-1.webp)
+
+Fuente de la imagen: https://docs.vllm.ai/en/stable/design/metrics/#engine-core-events
+
 El dashboard contiene 12 gráficos:
 1. E2E Request Latency: Latencia end-to-end de los requests. Presenta la latencia en P50, P90, P95 y P99; así como la latencia en promedio 
 2. Token Throughput: Número de tokens procesados en promedio
@@ -43,6 +45,12 @@ El dashboard contiene 12 gráficos:
 10. Queue Time
 11. Requests Prefill and Decode Time
 12. Max Generation Token in Sequence Group
+![dashboard_01](img/dashboard01.png)
+![dashboard_02](img/dashboard02.png)
+![dashboard_03](img/dashboard03.png)
+![dashboard_04](img/dashboard04.png)
+![dashboard_05](img/dashboard05.png)
+![dashboard_06](img/dashboard06.png)
 ### 1.3. Alertas
 El monitoreador contiene dos alertas, que son notificadas a una dirección de correo cuando se activan.
 #### 1.3.1. Reglas de alertas
@@ -51,7 +59,8 @@ El monitoreador contiene dos alertas, que son notificadas a una dirección de co
 | Brecha | No se recibieron requests durante 10 minutos | No se ha procesado ningún prompt tokens en los últimos 10 minutos - posible problema de servicio o periodo inactivo | Warning | Mayor a 0 (hay requests) |
 | LatenciaE2EAlta | Se detectó un pico la latencia End-to-End durante 1 minuto | La latencia de P99 E2E fue mayor a 14s por más de 1 minuto | Critical | Latencia de P99 E2E = 9.95s |
 #### 1.3.2. Notificaciones
-[3 imagenes]
+![notificacion1](img/notificacion1.png)
+![notificacion2](img/notificacion2.png)
 | Parámetro | Implementación | Pruebas | Explicación |
 |---|---|---|---|
 | group_wait | 2m | 1m | El tiempo que Alertmanager espera después de recibir la primera alerta antes de mandar la notificación Esto permite que multiples alertas que se disparan al mismo tiempo sean agrupadas en un único correo en lugar de enviar un correo por alerta |
@@ -70,6 +79,16 @@ vLLM_metrics_monitor/
 │   └── my_dashboard.json
 ├── datasources/
 │   └── datasource.yml
+├── img/
+│   ├── dashboard01.png
+│   ├── dashboard02.png
+│   ├── dashboard03.png
+│   ├── dashboard04.png
+│   ├── dashboard05.png
+│   ├── dashboard06.png
+│   ├── intervals-1.webp
+│   ├── notificacion1.png
+│   └── notificacion2.png
 ├── templates/
 │   └── vllm_alerts.tmpl
 ├── .dockerignore
